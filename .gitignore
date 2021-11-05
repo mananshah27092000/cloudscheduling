@@ -8,7 +8,8 @@ examples/
 .project
 hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/Check.java
 hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/*.class
-hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/antcolony/MainTest.java
+hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/antcolony/MainTest*.java
+hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/antcolony/*.class
 examples/org/cloudbus/cloudsim/examples
 pom
 release_notes.txt

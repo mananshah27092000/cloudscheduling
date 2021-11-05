@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
@@ -73,11 +74,92 @@ public abstract class MetaHeuristicAlgorithms{
         }
     }
     
+    // constructor for the case when best indiviudal should be calculated automatically from population
+    public MetaHeuristicAlgorithms(Cloudlet[] cloudletList, Vm[] vmList, int[][] population){ 
+        this.population = population;
+        if(population != null) this.populationSize = population.length;
+
+        if(!initialized){
+            MetaHeuristicAlgorithms.vmList = vmList;
+            MetaHeuristicAlgorithms.cloudletList = cloudletList;
+            vmCount = vmList.length;
+            cloudletCount = cloudletList.length;
+            
+            cloudletExecTime = new double [cloudletCount][vmCount];
+
+            for(int i=0; i < cloudletCount; i++){
+                for(int j=0; j < vmCount; j++){
+                    cloudletExecTime[i][j] = (double)cloudletList[i].cloudletLength/(double)(vmList[j].numberOfPes + vmList[i].mips) + (double)cloudletList[i].cloudletFileSize/(double)vmList[j].bw;
+                }
+            }
+            initialized = true;
+        }
+
+        bestQuality = Double.POSITIVE_INFINITY;
+
+        int bestIndividualIndex = -1;
+        for(int i = 0; i < populationSize; i++) {
+            double quality = getQuality(population[i]);
+            if(quality < bestQuality) {
+                bestQuality = quality;
+                bestIndividualIndex = i;
+            }
+        }
+
+        bestIndividual = population[bestIndividualIndex].clone();
+
+    }
+
+    // constructor for the case when population should be randomly initialized
+    public MetaHeuristicAlgorithms(Cloudlet[] cloudletList, Vm[] vmList, int populationSize){ 
+        if(!initialized){
+            MetaHeuristicAlgorithms.vmList = vmList;
+            MetaHeuristicAlgorithms.cloudletList = cloudletList;
+            vmCount = vmList.length;
+            cloudletCount = cloudletList.length;
+            
+            cloudletExecTime = new double [cloudletCount][vmCount];
+
+            for(int i=0; i < cloudletCount; i++){
+                for(int j=0; j < vmCount; j++){
+                    cloudletExecTime[i][j] = (double)cloudletList[i].cloudletLength/(double)(vmList[j].numberOfPes + vmList[i].mips) + (double)cloudletList[i].cloudletFileSize/(double)vmList[j].bw;
+                }
+            }
+            initialized = true;
+        }
+        
+        this.population = new int[populationSize][cloudletCount];
+        this.populationSize = populationSize;
+
+        Random rand;
+
+        for(int i = 0; i < populationSize; i++) {
+            for(int j = 0; j < cloudletCount; j++) {
+                population[i][j] = rand.nextInt(vmCount);
+            }
+        }
+
+
+        bestQuality = Double.POSITIVE_INFINITY;
+
+        int bestIndividualIndex = -1;
+        for(int i = 0; i < populationSize; i++) {
+            double quality = getQuality(population[i]);
+            if(quality < bestQuality) {
+                bestQuality = quality;
+                bestIndividualIndex = i;
+            }
+        }
+
+        bestIndividual = population[bestIndividualIndex].clone();
+
+    }
+
     public abstract void runNextGeneration();
 
     public double getQuality(int[] individual){
         int l = individual.length;
-        double[] sum = new int[vmList.length];
+        double[] sum = new double[vmList.length];
 
         for(int i = 0; i < l; i++){
             sum[individual[i]] += cloudletExecTime[i][individual[i]];

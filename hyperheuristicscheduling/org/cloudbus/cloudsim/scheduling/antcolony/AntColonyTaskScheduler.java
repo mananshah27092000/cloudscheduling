@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
-import javafx.util.Pair;
+import java.util.Random;
+import java.lang.Math;
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
@@ -31,7 +32,8 @@ import org.cloudbus.cloudsim.scheduling.MetaHeuristicAlgorithms;
 public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
     AntColonyParameters params;
     double[][] pheromoneTable;
-    double[] totalPheromone;
+    double[][] pheromoneHeuristicTable;
+    double[] pheromoneHeuristicTotal;
     // double bestMakespan;
     int currentGeneration;
 
@@ -54,29 +56,61 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
         super(cloudletList, vmList, population, bestIndividual);
         this.params = params;
         this.pheromoneTable = new double[cloudletCount][vmCount];
-        this.totalPheromone = new double[cloudletCount];
+        this.pheromoneHeuristicTable = new double[cloudletCount][vmCount];
+        this.pheromoneHeuristicTotal = new double[cloudletCount];
         
         // this.bestMakespan = Double.POSITIVE_INFINITY;
         this.currentGeneration = 0;
         // System.out.println(tabu.get(3));
     }
 
-    public AntColonyTaskScheduler(List<Vm> vmList, 
-                                  List<Cloudlet> cloudletList, 
+    public AntColonyTaskScheduler(Cloudlet[] cloudletList, 
+                                  Vm[] vmList, 
                                   AntColonyParameters params) {
-        this(vmList, cloudletList, null, null, params);
+        
+        super(cloudletList, vmList, params.antsPerGeneration);
+        this.params = params;
+        this.pheromoneTable = new double[cloudletCount][vmCount];
+        this.pheromoneHeuristicTable = new double[cloudletCount][vmCount];
+        this.pheromoneHeuristicTotal = new double[cloudletCount];
+        
+        // this.bestMakespan = Double.POSITIVE_INFINITY;
+        this.currentGeneration = 0;
+
+    }
+
+    private double getPheromoneHeuristic(int cloudlet, int vm) {
+        return Math.pow(pheromoneTable[cloudlet][vm], params.pheromoneWeight) *
+               Math.pow(1 / cloudletExecTime[cloudlet][vm], params.heuristicWeight);
+    }
+
+    private void addValueToPheromone(int cloudlet, int vm, double value) {
+        pheromoneTable[cloudlet][vm] += value;
+        pheromoneHeuristicTotal[cloudlet] -= pheromoneHeuristicTable[cloudlet][vm];
+        pheromoneHeuristicTable[cloudlet][vm] = getPheromoneHeuristic(cloudlet, vm);
+        pheromoneHeuristicTotal[cloudlet] += pheromoneHeuristicTable[cloudlet][vm];
     }
 
     private void initPheromoneTable() {
 
         for(int i = 0; i < cloudletCount; i++) {
+            pheromoneHeuristicTotal[i] = 0;
             for(int j = 0; j < vmCount; j++) {
-                this.pheromoneTable[i][j] = this.params.initPheromone;
+                pheromoneTable[i][j] = params.initPheromone;
+                pheromoneHeuristicTable[i][j] = getPheromoneHeuristic(i, j);
+                pheromoneHeuristicTotal[i] += pheromoneHeuristicTable[i][j];
                 // System.out.println(i + " " + j + " " + this.pheromoneTable.get(i).get(j));
             }
-            this.totalPheromone[i] = params.initPheromone * vmCount;
         }
         updatePheromoneTable();
+    }
+
+    private void evaporatePheromones() {
+        for(int i = 0; i < cloudletCount; i++) {
+            for(int j = 0; j < vmCount; j++) {
+                addValueToPheromone(i, j, (1 - params.evaporationRate) * pheromoneTable[i][j]);
+            }
+        }
     }
 
     private void updatePheromoneTable() {
@@ -93,8 +127,7 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
         double quality = getQuality(individual);
         for(int cloudlet = 0; cloudlet < cloudletCount; cloudlet++) {
             int vm = individual[cloudlet];
-            pheromoneTable[cloudlet][vm] += params.pheromoneUpdationRate / quality;
-            totalPheromone[cloudlet] += params.pheromoneUpdationRate / quality;
+            addValueToPheromone(cloudlet, vm, params.pheromoneUpdationRate / quality);
         }
     }
 
@@ -102,15 +135,27 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
     private int sampleFromVmList(int cloudletIndex) {
         double uniformRand = Math.random();
         double cumulativeProb = 0.0;
-        
+
         for(int i = 0; i < vmCount; i++) {
-            cumulativeProb += pheromoneTable[cloudletIndex][i] / totalPheromone[cloudletIndex];
+            cumulativeProb += pheromoneHeuristicTable[cloudletIndex][i] / 
+                                pheromoneHeuristicTotal[cloudletIndex];
             if(uniformRand <= cumulativeProb) {
                 return i;
             }
         }
 
         return vmCount - 1;
+    }
+
+    private void updatePheromoneHeuristicTotals() {
+
+        for(int i = 0; i < cloudletCount; i++) {
+            pheromoneHeuristicTotal[i] = 0.0;
+            for(int j = 0; j < vmCount; j++) {
+                pheromoneHeuristicTotal[i] += Math.pow(pheromoneTable[i][j], params.pheromoneWeight) *
+                                              Math.pow(1.0 / cloudletExecTime[i][j], params.heuristicWeight);
+            }
+        }
     }
 
     @Override
@@ -122,10 +167,10 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
             double quality = getQuality(population[i]);
             if(quality < bestQuality) {
                 bestQuality = quality;
-                bestIndividual = population[i];
+                bestIndividual = population[i].clone();
             }
         }
-
+        evaporatePheromones();
         updatePheromoneTable();
         currentGeneration++;
     }

@@ -34,7 +34,7 @@ import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
 
-import org.cloudbus.cloudsim.scheduling.MetaHueristicAlgorithms;
+import org.cloudbus.cloudsim.scheduling.MetaHeuristicAlgorithms;
 
 
 public class HyperHeuristicScheduling{
