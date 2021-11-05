@@ -57,7 +57,9 @@ public class HyperHeuristicScheduling{
 
     public static double intitalDiversity;
 
-    HyperHeuristicScheduling(Cloudlet[] cloudletList, Vm[] vmList, int size, int maxIterations, int maxIterNotImproved){
+    public static double Tmax;
+
+    HyperHeuristicScheduling(Cloudlet[] cloudletList, Vm[] vmList, int size, int maxIterations, int maxIterNotImproved, double Tmax){
         cloudletSize       = cloudletList.length;
         vmSize             = vmList.length;
         cloudletList       = cloudletList.clone();
@@ -65,6 +67,7 @@ public class HyperHeuristicScheduling{
         populationSize     = size;
         maxIterations      = maxIterations;
         maxIterNotImproved = maxIterNotImproved;
+        Tmax               = Tmax;
     }
 
 	public static void runHyperHeuristic(){
@@ -81,14 +84,76 @@ public class HyperHeuristicScheduling{
         
         intitalDiversity = getDiversity(initialPopulation) - 3 * getStandardDeviation(initialPopulation);
         // Log.printLine(intitalDiversity);
-        for(int i = 0; i < maxIterations; i++){
 
+        MetaHeuristicAlgorithms LLH = getHeuristic(initialPopulation, initialPopulation[0].clone());
+        int[][] updatedPopulation;
+        int notImprovedIterations = 0, iterationByLLH = 0;
+        int LLHQualityValue = -1;
+
+        // There 
+        for(int i = 0; i < maxIterations; i++){
+            LLH.runNextGeneration();
+            updatedPopulation = LLH.population.clone();
+            iterationByLLH++;
+            LLHQualityValue = LLH.getQuality();
+
+            if(changeHeuristic(updatedPopulation, notImprovedIterations)){
+                updatedPopulation = perturbation(updatedPopulation, LLH, iterationByLLH);
+                LLH = getHeuristic(updatedPopulation, bestIndividual);
+                iterationByLLH = 0;
+                notImprovedIterations = 0;
+            }
         }
 
     }
 
-    public static int[][] perturbation(int[][] population){
+    public static  MetaHueristicAlgorithms getHeuristic(int[][] population, int[] bestIndividual){
+        int hueristicNumber = (int)(2*Math.random());
+        if(hueristicNumber == 1){
+            return new MetaHeuristicAlgorithms(cloudletList, vmList, population, bestIndividual);
+        }else if(hueristicNumber == 2){
+            return new MetaHeuristicAlgorithms(cloudletList, vmList, population, bestIndividual);
+        }
+    }
 
+    public static int[][] perturbation(int[][] population, MetaHueristicAlgorithms LLH, int iterationByLLH){
+        ArrayList<Double> fitness = new ArrayList<Double>();
+        double maxFitness = -1;
+        double minFitness = 100000000;
+
+        for(int i = 0; i < populationSize; i++){
+            double tempFitness =LLH.getQuality(population[i]);
+            fitness.add(tempFitness);
+            maxFitness = Math.max(maxFitness, tempFitness);
+            minFitness = Math.max(minFitness, tempFitness);
+        }
+
+        ArrayList<Double> temperature = new ArrayList<Double>();
+        for(int i = 0; i < populationSize; i++){
+            double temp = Tmax * (double)((maxIterations - iterationByLLH) * (maxFitness - fitness.get(i))) / maxIterations * (maxFitness - minFitness);
+            temperature.push(temp);
+        }
+        for(int i = 0; i < populationSize; i++){
+            int[] individual = population[i];
+            int[] newIndividual = individual.clone();
+            int subsolution = (int)(Math.random()*cloudletSize);
+            int subsolutionValue = (int)(Math.random()*vmSize);
+            newIndividual[subsolution] = subsolutionValue;
+
+            int fitnessOld = LLH.getQuality(individual);
+            int fitnessNew = LLH.getQuality(newIndividual);
+
+            if(fitnessOld >= fitnessNew){
+               population[i] = newIndividual;
+            }else{
+                double prob = Math.exp((double)(fitnessOld-fitnessNew)/temperature.get(i));
+                if(Math.random() > (1.0 - prob)){
+                    population[i] = newIndividual;
+                }
+            }
+        }
+        return population;
+        
     }
     public static boolean changeHeuristic(int[][] population, int notImprovedIterations){
         if(improvementDetection(notImprovedIterations) && diversityDetection(population))return false;
@@ -146,4 +211,5 @@ public class HyperHeuristicScheduling{
         return true;
     }
 
+    
 }
