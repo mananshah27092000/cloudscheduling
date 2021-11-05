@@ -33,14 +33,15 @@ import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
+import org.cloudbus.cloudsim.scheduling.HyperHeuristicScheduling;
 
 public class HyperHeuristicSimulation{
 
 	/** The cloudlet list. */
 	private static List<Cloudlet> cloudletList;
 
-	/** The vmlist. */
-	private static List<Vm> vmlist;
+	/** The vmList. */
+	private static List<Vm> vmList;
 
 	// Which cloudlet dataset is being used from j30, j60 and j90
 	private static int cloudletscount = 32;
@@ -71,10 +72,10 @@ public class HyperHeuristicSimulation{
 	            	int brokerId = broker.getId();
 
 	            	//Create Virtual machines as mentioned in the paper
-	            	vmlist = createVMs(brokerId);
+	            	vmList = createVMs(brokerId);
 
 	            	//Submit vm list to the broker
-	            	broker.submitVmList(vmlist);
+	            	broker.submitVmList(vmList);
 
 					// Create cloudlets as per the dataset
 					cloudletList = createCloudlets(brokerId, "1_1.txt");
@@ -82,11 +83,16 @@ public class HyperHeuristicSimulation{
 	            	//submit cloudlet list to the broker
 	            	broker.submitCloudletList(cloudletList);
 
-
+					Cloudlet[] cloudletArray = new Cloudlet[cloudletList.size()];
+					Vm[] vmArray = new Vm[vmList.size()];
+					cloudletList.toArray();
+					vmList.toArray();
+					HyperHeuristicScheduling hueristic = new HyperHeuristicScheduling(cloudletArray, vmArray, 10, 100, 100);
+					hueristic.runHyperHeuristic();
 	            	//bind the cloudlets to the vms. This way, the broker
 	            	// will submit the bound cloudlets only to the specific VM
 					for (Cloudlet cloudlet:cloudletList){
-	            		broker.bindCloudletToVm(cloudlet.getCloudletId(), vmlist.get(0).getId());
+	            		broker.bindCloudletToVm(cloudlet.getCloudletId(), vmList.get(0).getId());
 					}
 	            	// broker.bindCloudletToVm(cloudlet2.getCloudletId(), vm1.getId());
 
