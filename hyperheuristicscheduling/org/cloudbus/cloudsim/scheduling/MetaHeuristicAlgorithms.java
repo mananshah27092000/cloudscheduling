@@ -67,7 +67,7 @@ public abstract class MetaHeuristicAlgorithms{
 
             for(int i=0; i < cloudletCount; i++){
                 for(int j=0; j < vmCount; j++){
-                    cloudletExecTime[i][j] = (double)cloudletList[i].cloudletLength/(double)(vmList[j].numberOfPes + vmList[i].mips) + (double)cloudletList[i].cloudletFileSize/(double)vmList[j].bw;
+                    cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[i].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
                 }
             }
             initialized = true;
@@ -89,7 +89,8 @@ public abstract class MetaHeuristicAlgorithms{
 
             for(int i=0; i < cloudletCount; i++){
                 for(int j=0; j < vmCount; j++){
-                    cloudletExecTime[i][j] = (double)cloudletList[i].cloudletLength/(double)(vmList[j].numberOfPes + vmList[i].mips) + (double)cloudletList[i].cloudletFileSize/(double)vmList[j].bw;
+                    cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[i].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
+            
                 }
             }
             initialized = true;
@@ -122,7 +123,9 @@ public abstract class MetaHeuristicAlgorithms{
 
             for(int i=0; i < cloudletCount; i++){
                 for(int j=0; j < vmCount; j++){
-                    cloudletExecTime[i][j] = (double)cloudletList[i].cloudletLength/(double)(vmList[j].numberOfPes + vmList[i].mips) + (double)cloudletList[i].cloudletFileSize/(double)vmList[j].bw;
+                    cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[i].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
+                    
+                
                 }
             }
             initialized = true;
@@ -131,7 +134,7 @@ public abstract class MetaHeuristicAlgorithms{
         this.population = new int[populationSize][cloudletCount];
         this.populationSize = populationSize;
 
-        Random rand;
+        Random rand = new Random();
 
         for(int i = 0; i < populationSize; i++) {
             for(int j = 0; j < cloudletCount; j++) {

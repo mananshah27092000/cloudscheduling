@@ -131,7 +131,7 @@ public class HyperHeuristicScheduling{
         ArrayList<Double> temperature = new ArrayList<Double>();
         for(int i = 0; i < populationSize; i++){
             double temp = Tmax * (double)((maxIterations - iterationByLLH) * (maxFitness - fitness.get(i))) / maxIterations * (maxFitness - minFitness);
-            temperature.push(temp);
+            temperature.add(temp);
         }
         for(int i = 0; i < populationSize; i++){
             int[] individual = population[i];
