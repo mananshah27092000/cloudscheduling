@@ -1,5 +1,10 @@
 docs/
 jars/
+bin/
+classes/
+examples/
+.settings/
+.project
 hyperhueristicscheduling/workload
 examples/org/cloudbus/cloudsim/examples
 pom
