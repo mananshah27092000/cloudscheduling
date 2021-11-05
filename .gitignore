@@ -4,10 +4,11 @@ bin/
 classes/
 examples/
 .settings/
+.vscode/
 .project
-hyperhueristicscheduling/workload
 hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/Check.java
 hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/*.class
+hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/antcolony/MainTest.java
 examples/org/cloudbus/cloudsim/examples
 pom
 release_notes.txt
