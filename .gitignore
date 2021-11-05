@@ -1,8 +1,8 @@
 docs/
 jars/
 bin/
-cloudscheduling/workload
-cloudscheduling/org/cloudbus/cloudsim/examples
+hyperhueristicscheduling/workload
+hyperhueristicscheduling/org/cloudbus/cloudsim/examples
 pom
 release_notes.txt
 changelog.txt

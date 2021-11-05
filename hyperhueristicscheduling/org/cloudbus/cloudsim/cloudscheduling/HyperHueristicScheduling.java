@@ -1,4 +1,4 @@
-package org.cloudbus.cloudsim.cloudscheduling;
+package org.cloudbus.cloudsim.hyperhueristicscheduling;
 
 /*
     Authors: Manan Shah and Manul Goyal
