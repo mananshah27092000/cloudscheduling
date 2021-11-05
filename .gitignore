@@ -8,6 +8,8 @@ examples/
 .project
 hyperhueristicscheduling/workload
 examples/org/cloudbus/cloudsim/examples
+hyperhueristicscheduling/org/cloudbus/cloudsim/hyperhueristicscheduling/metaheuristics/antcolony/*.class
+hyperhueristicscheduling/org/cloudbus/cloudsim/hyperhueristicscheduling/metaheuristics/antcolony/MainTest.java
 pom
 release_notes.txt
 changelog.txt
