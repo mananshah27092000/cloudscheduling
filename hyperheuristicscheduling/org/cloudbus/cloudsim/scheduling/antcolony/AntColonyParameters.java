@@ -1,4 +1,4 @@
-package org.cloudbus.cloudsim.hyperhueristicscheduling.metaheuristics.antcolony;
+package org.cloudbus.cloudsim.scheduling.antcolony;
 
 public class AntColonyParameters {
     public double evaporationRate;

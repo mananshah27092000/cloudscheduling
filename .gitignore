@@ -6,12 +6,10 @@ examples/
 .settings/
 .vscode/
 .project
-hyperhueristicscheduling/workload
 hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/Check.java
 hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/*.class
+hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/antcolony/MainTest.java
 examples/org/cloudbus/cloudsim/examples
-hyperhueristicscheduling/org/cloudbus/cloudsim/hyperhueristicscheduling/metaheuristics/antcolony/*.class
-hyperhueristicscheduling/org/cloudbus/cloudsim/hyperhueristicscheduling/metaheuristics/antcolony/MainTest.java
 pom
 release_notes.txt
 changelog.txt
