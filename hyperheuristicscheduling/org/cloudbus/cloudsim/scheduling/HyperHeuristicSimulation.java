@@ -1,4 +1,4 @@
-package org.cloudbus.cloudsim.hyperhueristicscheduling;
+package org.cloudbus.cloudsim.scheduling;
 
 /*
     Authors: Manan Shah and Manul Goyal
@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.io.File;
+import java.util.Scanner;
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
@@ -32,7 +34,7 @@ import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
 
-public class HyperHueristicScheduling {
+public class HyperHeuristicSimulation{
 
 	/** The cloudlet list. */
 	private static List<Cloudlet> cloudletList;
@@ -40,10 +42,14 @@ public class HyperHueristicScheduling {
 	/** The vmlist. */
 	private static List<Vm> vmlist;
 
+	// Which cloudlet dataset is being used from j30, j60 and j90
+	private static int cloudletscount = 32;
+
+	private static String filepath = "j30.sm\\j30";
 	/**
 	 * Creates main() to run this example
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args)  {
 
 		Log.printLine("HyperHueristic Algorithm starting to run.....");
 
@@ -64,35 +70,14 @@ public class HyperHueristicScheduling {
 	            	DatacenterBroker broker = createBroker();
 	            	int brokerId = broker.getId();
 
-	            	//Create 4 virtual machines as mentioned in the paper
-	            	vmlist = createVMs();
+	            	//Create Virtual machines as mentioned in the paper
+	            	vmlist = createVMs(brokerId);
 
-	            	
-	            	//submit vm list to the broker
+	            	//Submit vm list to the broker
 	            	broker.submitVmList(vmlist);
 
-
-	            	//Create Cloudlets/jobs
-	            	cloudletList = new ArrayList<Cloudlet>();
-
-	            	//Cloudlet properties
-	            	int id = 0;
-	            	pesNumber=1;
-	            	long length = 25000;
-	            	long fileSize = 300;
-	            	long outputSize = 300;
-	            	UtilizationModel utilizationModel = new UtilizationModelFull();
-
-	            	Cloudlet cloudlet1 = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
-	            	cloudlet1.setUserId(brokerId);
-
-	            	id++;
-	            	Cloudlet cloudlet2 = new Cloudlet(id, 250000099, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
-	            	cloudlet2.setUserId(brokerId);
-
-	            	//add the cloudlets to the list
-	            	cloudletList.add(cloudlet1);
-	            	cloudletList.add(cloudlet2);
+					// Create cloudlets as per the dataset
+					cloudletList = createCloudlets(brokerId, "1_1.txt");
 
 	            	//submit cloudlet list to the broker
 	            	broker.submitCloudletList(cloudletList);
@@ -100,8 +85,10 @@ public class HyperHueristicScheduling {
 
 	            	//bind the cloudlets to the vms. This way, the broker
 	            	// will submit the bound cloudlets only to the specific VM
-	            	broker.bindCloudletToVm(cloudlet1.getCloudletId(), vm1.getId());
-	            	broker.bindCloudletToVm(cloudlet2.getCloudletId(), vm1.getId());
+					for (Cloudlet cloudlet:cloudletList){
+	            		broker.bindCloudletToVm(cloudlet.getCloudletId(), vmlist.get(0).getId());
+					}
+	            	// broker.bindCloudletToVm(cloudlet2.getCloudletId(), vm1.getId());
 
 	            	// Sixth step: Starts the simulation
 	            	Log.printLine(CloudSim.startSimulation());
@@ -114,7 +101,7 @@ public class HyperHueristicScheduling {
 	            	CloudSim.stopSimulation();
 
 	            	printCloudletList(newList);
-
+					Log.printLine(getMakeSpan(newList));
 	            	Log.printLine("CloudSimExample2 finished!");
 	        }
 	        catch (Exception e) {
@@ -123,32 +110,85 @@ public class HyperHueristicScheduling {
 	        }
 	    }
 
-        private static List<Vm> createVMs(){
+
+		//Create Cloudlets/jobs
+		private static  List<Cloudlet> createCloudlets(int brokerId, String suffix) throws Exception{
+
+			cloudletList = new ArrayList<Cloudlet>();
+
+			// Log.printLine(filepath.concat(suffix));
+			File file     = new File(filepath.concat(suffix));	
+			Scanner sc 	  = new Scanner(file);
+			int skiplines = getJobStart();
+
+			for (int i=0; i < skiplines-1; i++)sc.nextLine();
+
+			//Cloudlet properties
+			int pesNumber 					  = 1;
+			int mips      					  = 250;
+			long bw 	  					  = 500;
+			long outputSize 				  = 300;
+			UtilizationModel utilizationModel = new UtilizationModelFull();
+			long length,fileSize;
+			
+			for(int id=0; id<cloudletscount; id++){
+				Scanner line = new Scanner(sc.nextLine());
+				line.nextInt();
+				line.nextInt();
+
+				// Creating cloudlet for this task
+				int duration = line.nextInt();
+				length 		 = duration * mips;
+				fileSize 	 = duration * bw;
+
+				// Create cloudlet
+				Cloudlet tempcloudlet = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
+				tempcloudlet.setUserId(brokerId);
+				
+				//add the cloudlets to the list
+				cloudletList.add(tempcloudlet);
+			}
+
+
+			return cloudletList;
+		}
+	
+		// To get the line number from which we can job duration from j30, j60 and j90 datasets
+		private static int getJobStart(){
+			if(cloudletscount == 32){
+				return 55; 
+			}else{
+				return 0;
+			}
+		}
+
+		// Creating four VMs
+        private static List<Vm> createVMs(int brokerId){
             ArrayList<Vm> fourVms = new ArrayList<Vm> (); 
 
             //VM description
-            int vmid = 0;
-            int mips = 250;
-            long size = 10000; //image size (MB)
-            int ram = 512; //vm memory (MB)
-            long bw = 1000;
-            int pesNumber = 1; //number of cpus
-            String vmm = "Xen"; //VMM name
+            int vmid 		= 0;
+            int mips 		= 250;
+            long size	 	= 10000; //image size (MB)
+            int ram 		= 512; //vm memory (MB)
+            long bw 		= 500;
+            int pesNumber 	= 1; //number of cpus
+            String vmm 		= "Xen"; //VMM name
 
-            //create two VMs
+            //create four VMs
             Vm vm1 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerSpaceShared());
             fourVms.add(vm1);
 
             vmid++;
-            Vm vm2 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerSpaceShared());
+            Vm vm2 = new Vm(vmid, brokerId, mips, pesNumber, ram, 2*bw, size, vmm, new CloudletSchedulerSpaceShared());
             fourVms.add(vm2);
             
             vmid++;
-            Vm vm3 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerSpaceShared());
+            Vm vm3 = new Vm(vmid, brokerId, mips, pesNumber, 2*ram, bw, size, vmm, new CloudletSchedulerSpaceShared());
             fourVms.add(vm3);
             
             vmid++;
-            Vm vm4 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerSpaceShared());
+            Vm vm4 = new Vm(vmid, brokerId, mips, pesNumber, 2*ram, 2*bw, size, vmm, new CloudletSchedulerSpaceShared());
             fourVms.add(vm4);
 
             return fourVms;
@@ -231,6 +271,15 @@ public class HyperHueristicScheduling {
 	    	return broker;
 	    }
 
+		// return makespan for the given list of cloudlet schedule
+		private static double getMakeSpan(List<Cloudlet> list){
+			int size = list.size();
+			double makespan = -1;
+			for(int i = 0; i < size; i++){
+				makespan = Math.max(makespan, list.get(i).getFinishTime());
+			}
+			return makespan;
+		}
 	    /**
 	     * Prints the Cloudlet objects
 	     * @param list  list of Cloudlets
@@ -239,7 +288,7 @@ public class HyperHueristicScheduling {
 	        int size = list.size();
 	        Cloudlet cloudlet;
 
-	        String indent = "    ";
+	        String indent = "         ";
 	        Log.printLine();
 	        Log.printLine("========== OUTPUT ==========");
 	        Log.printLine("Cloudlet ID" + indent + "STATUS" + indent +
