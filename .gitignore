@@ -4,6 +4,7 @@ bin/
 classes/
 examples/
 .settings/
+.vscode/
 .project
 hyperhueristicscheduling/workload
 examples/org/cloudbus/cloudsim/examples
