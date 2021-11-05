@@ -7,6 +7,8 @@ examples/
 .vscode/
 .project
 hyperhueristicscheduling/workload
+hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/Check.java
+hyperheuristicscheduling/org/cloudbus/cloudsim/scheduling/*.class
 examples/org/cloudbus/cloudsim/examples
 hyperhueristicscheduling/org/cloudbus/cloudsim/hyperhueristicscheduling/metaheuristics/antcolony/*.class
 hyperhueristicscheduling/org/cloudbus/cloudsim/hyperhueristicscheduling/metaheuristics/antcolony/MainTest.java
@@ -18,3 +20,5 @@ build.xml
 pom.xml
 readme.txt
 examples.txt
+
+j30.sm/
