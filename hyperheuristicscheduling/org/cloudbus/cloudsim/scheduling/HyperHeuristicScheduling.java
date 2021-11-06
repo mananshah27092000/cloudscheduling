@@ -88,9 +88,9 @@ public class HyperHeuristicScheduling{
         Log.printLine(getDiversity(initialPopulation)+ " " + getStandardDeviation(initialPopulation));
         Log.printLine(intitalDiversity);
 
-        int[] bestIndividual = initialPopulation[0].clone();
-        double bestQ = 10000000;
-        MetaHeuristicAlgorithms LLH = getHeuristic(initialPopulation, bestIndividual);
+        MetaHeuristicAlgorithms LLH = getHeuristicInit();
+        int[] bestIndividual = LLH.bestIndividual.clone();
+        double bestQ = LLH.bestQuality;
         int[][] updatedPopulation;
         int notImprovedIterations = 0, iterationByLLH = 0;
         int LLHQualityValue = -1;
@@ -151,6 +151,31 @@ public class HyperHeuristicScheduling{
             return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
         }
         return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
+    }
+
+    public static  MetaHeuristicAlgorithms getHeuristicInit(){
+        int hueristicNumber = (int)(2*Math.random());
+        Log.printLine(hueristicNumber);
+        AntColonyParameters ACOparameters = new AntColonyParameters() {
+            {
+                evaporationRate = 0.5;
+                pheromoneWeight = 1;
+                heuristicWeight = 1;
+                pheromoneUpdationRate = 100;
+                maxIterations = 150;
+                antsPerGeneration = populationSize;
+            }
+        };
+
+        // Log.printLine("In hyperhueristicscheduling");
+        // Log.printLine(vmList.length);
+        // Log.printLine(vmSize);
+        if(hueristicNumber == 0){
+            return new AntColonyTaskScheduler(cloudletList, vmList, ACOparameters);
+        }else if(hueristicNumber == 1){
+            return new AntColonyTaskScheduler(cloudletList, vmList, ACOparameters);
+        }
+        return new AntColonyTaskScheduler(cloudletList, vmList, ACOparameters);
     }
 
     public static int[][] perturbation(int[][] population, MetaHeuristicAlgorithms LLH, int iterationByLLH){
