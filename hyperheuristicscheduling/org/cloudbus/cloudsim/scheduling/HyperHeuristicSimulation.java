@@ -87,7 +87,7 @@ public class HyperHeuristicSimulation{
 					Vm[] vmArray = new Vm[vmList.size()];
 					cloudletList.toArray();
 					vmList.toArray();
-					HyperHeuristicScheduling hueristic = new HyperHeuristicScheduling(cloudletArray, vmArray, 10, 100, 100);
+					HyperHeuristicScheduling hueristic = new HyperHeuristicScheduling(cloudletArray, vmArray, 10, 10, 5, 100.0);
 					hueristic.runHyperHeuristic();
 	            	//bind the cloudlets to the vms. This way, the broker
 	            	// will submit the bound cloudlets only to the specific VM

@@ -35,7 +35,8 @@ import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
 
 import org.cloudbus.cloudsim.scheduling.MetaHeuristicAlgorithms;
-
+import org.cloudbus.cloudsim.scheduling.antcolony.AntColonyTaskScheduler;
+import org.cloudbus.cloudsim.scheduling.antcolony.AntColonyParameters;
 
 public class HyperHeuristicScheduling{
 
@@ -83,21 +84,36 @@ public class HyperHeuristicScheduling{
         }
         
         intitalDiversity = getDiversity(initialPopulation) - 3 * getStandardDeviation(initialPopulation);
-        // Log.printLine(intitalDiversity);
+        Log.printLine(intitalDiversity);
 
-        MetaHeuristicAlgorithms LLH = getHeuristic(initialPopulation, initialPopulation[0].clone());
+        int[] bestIndividual = initialPopulation[0].clone();
+        double bestQ = 10000000;
+        MetaHeuristicAlgorithms LLH = getHeuristic(initialPopulation, bestIndividual);
         int[][] updatedPopulation;
         int notImprovedIterations = 0, iterationByLLH = 0;
         int LLHQualityValue = -1;
 
         // There 
         for(int i = 0; i < maxIterations; i++){
+            Log.printLine("Runnig metahueristic iteration number:"+i+"....");
             LLH.runNextGeneration();
             updatedPopulation = LLH.population.clone();
             iterationByLLH++;
-            LLHQualityValue = LLH.getQuality();
+            int[] currentBest = LLH.bestIndividual.clone();
+            double currentBestQ = LLH.bestQuality;
+            Log.printLine(currentBest);
+            Log.printLine(currentBestQ);
+
+            if(bestQ - currentBestQ < 1e-4){
+                notImprovedIterations++;
+            }
+            if(currentBestQ < bestQ){
+                bestQ          = currentBestQ;
+                bestIndividual = currentBest;
+            }
 
             if(changeHeuristic(updatedPopulation, notImprovedIterations)){
+                Log.printLine("Changing heuristic");
                 updatedPopulation = perturbation(updatedPopulation, LLH, iterationByLLH);
                 LLH = getHeuristic(updatedPopulation, bestIndividual);
                 iterationByLLH = 0;
@@ -107,16 +123,29 @@ public class HyperHeuristicScheduling{
 
     }
 
-    public static  MetaHueristicAlgorithms getHeuristic(int[][] population, int[] bestIndividual){
+    public static  MetaHeuristicAlgorithms getHeuristic(int[][] population, int[] bestIndividual){
         int hueristicNumber = (int)(2*Math.random());
+        Log.printLine(hueristicNumber);
+        AntColonyParameters ACOparameters = new AntColonyParameters() {
+            {
+                evaporationRate = 0.5;
+                pheromoneWeight = 1;
+                heuristicWeight = 1;
+                pheromoneUpdationRate = 100;
+                maxIterations = 150;
+                antsPerGeneration = 8;
+            }
+        };
+
         if(hueristicNumber == 1){
-            return new MetaHeuristicAlgorithms(cloudletList, vmList, population, bestIndividual);
+            return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
         }else if(hueristicNumber == 2){
-            return new MetaHeuristicAlgorithms(cloudletList, vmList, population, bestIndividual);
+            return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
         }
+        return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
     }
 
-    public static int[][] perturbation(int[][] population, MetaHueristicAlgorithms LLH, int iterationByLLH){
+    public static int[][] perturbation(int[][] population, MetaHeuristicAlgorithms LLH, int iterationByLLH){
         ArrayList<Double> fitness = new ArrayList<Double>();
         double maxFitness = -1;
         double minFitness = 100000000;
@@ -140,8 +169,8 @@ public class HyperHeuristicScheduling{
             int subsolutionValue = (int)(Math.random()*vmSize);
             newIndividual[subsolution] = subsolutionValue;
 
-            int fitnessOld = LLH.getQuality(individual);
-            int fitnessNew = LLH.getQuality(newIndividual);
+            double fitnessOld = LLH.getQuality(individual);
+            double fitnessNew = LLH.getQuality(newIndividual);
 
             if(fitnessOld >= fitnessNew){
                population[i] = newIndividual;
