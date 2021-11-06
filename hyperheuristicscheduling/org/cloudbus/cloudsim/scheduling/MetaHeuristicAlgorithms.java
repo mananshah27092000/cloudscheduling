@@ -71,7 +71,7 @@ public abstract class MetaHeuristicAlgorithms{
                     // Log.printLine(j);
                     // Log.print(cloudletList[i].getCloudletLength());
                     // Log.print(vmList[j].getNumberOfPes());
-                    // Log.print( vmList[i].getMips());
+                    // Log.print( vmList[j].getMips());
                     // Log.print(cloudletList[i].getCloudletFileSize());
                     // Log.print(vmList[j].getBw());
                     cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[j].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
@@ -103,7 +103,7 @@ public abstract class MetaHeuristicAlgorithms{
 
             for(int i=0; i < cloudletCount; i++){
                 for(int j=0; j < vmCount; j++){
-                    cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[i].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
+                    cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[j].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
             
                 }
             }
@@ -137,7 +137,7 @@ public abstract class MetaHeuristicAlgorithms{
 
             for(int i=0; i < cloudletCount; i++){
                 for(int j=0; j < vmCount; j++){
-                    cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[i].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
+                    cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[j].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
                     
                 
                 }

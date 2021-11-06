@@ -90,14 +90,15 @@ public class HyperHeuristicSimulation{
 					// Log.printLine(vmArray.length);
 
 					HyperHeuristicScheduling hueristic = new HyperHeuristicScheduling(cloudletArray, vmArray, 10, 10, 5, 100.0);
-					hueristic.runHyperHeuristic();
+					int[] computedSchedule = hueristic.runHyperHeuristic();
 	            	//bind the cloudlets to the vms. This way, the broker
 	            	// will submit the bound cloudlets only to the specific VM
-					for (Cloudlet cloudlet:cloudletList){
-	            		broker.bindCloudletToVm(cloudlet.getCloudletId(), vmList.get(0).getId());
+					for (int i = 0; i < cloudletArray.length; i++){
+						int scheduledVmId = computedSchedule[i];
+	            		broker.bindCloudletToVm(cloudletArray[i].getCloudletId(), vmArray[scheduledVmId].getId());
 					}
 	            	// broker.bindCloudletToVm(cloudlet2.getCloudletId(), vm1.getId());
-					Log.setDisabled(true);
+					Log.setDisabled(false);
 	            	// Sixth step: Starts the simulation
 	            	Log.printLine(CloudSim.startSimulation());
 					Log.printLine("...........");

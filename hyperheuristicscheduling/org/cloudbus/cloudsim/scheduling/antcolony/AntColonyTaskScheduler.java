@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.lang.Math;
+import java.util.Arrays;
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
@@ -135,19 +136,26 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
     }
 
     // discrete inverse transform sampling
-    private int sampleFromVmList(int cloudletIndex) {
+    private int sampleFromVmList(int cloudletIndex, boolean[] vmUsed) {
         double uniformRand = Math.random();
         double cumulativeProb = 0.0;
 
+        double phTotal = 0;
         for(int i = 0; i < vmCount; i++) {
-            cumulativeProb += pheromoneHeuristicTable[cloudletIndex][i] / 
-                                pheromoneHeuristicTotal[cloudletIndex];
+            if(!vmUsed[i]) phTotal += pheromoneHeuristicTable[cloudletIndex][i];
+        }
+
+        int lastUnusedVm = -1;
+        for(int i = 0; i < vmCount; i++) {
+            if(vmUsed[i]) continue;
+            lastUnusedVm = i;
+            cumulativeProb += pheromoneHeuristicTable[cloudletIndex][i] / phTotal;
             if(uniformRand <= cumulativeProb) {
                 return i;
             }
         }
 
-        return vmCount - 1;
+        return lastUnusedVm;
     }
 
     private void updatePheromoneHeuristicTotals() {
@@ -164,8 +172,16 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
     @Override
     public void runNextGeneration() {
         for(int i = 0; i < params.antsPerGeneration; i++) {
+            boolean[] vmUsed = new boolean[vmCount];
+            int vmUsedCount = 0;
             for(int j = 0; j < cloudletCount; j++) {
-                population[i][j] = sampleFromVmList(j);
+                population[i][j] = sampleFromVmList(j, vmUsed);
+                vmUsed[population[i][j]] = true;
+                vmUsedCount++;
+                if(vmUsedCount == vmCount) {
+                    vmUsedCount = 0;
+                    Arrays.fill(vmUsed, 0, vmCount, false);
+                }
             }
             double quality = getQuality(population[i]);
             if(quality < bestQuality) {
@@ -177,6 +193,22 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
         updatePheromoneTable();
         currentGeneration++;
     }
+
+    // public void runNextGenerationTemp() {
+    //     for(int i = 0; i < params.antsPerGeneration; i++) {
+    //         for(int j = 0; j < cloudletCount; j++) {
+    //             population[i][j] = sampleFromVmList(j);
+    //         }
+    //         double quality = getQuality(population[i]);
+    //         if(quality < bestQuality) {
+    //             bestQuality = quality;
+    //             bestIndividual = population[i].clone();
+    //         }
+    //     }
+    //     evaporatePheromones();
+    //     updatePheromoneTable();
+    //     currentGeneration++;
+    // }
 
     
 }
