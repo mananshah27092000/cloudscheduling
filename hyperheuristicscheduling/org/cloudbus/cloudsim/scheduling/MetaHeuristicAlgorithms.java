@@ -160,6 +160,7 @@ public abstract class MetaHeuristicAlgorithms{
         bestQuality = Double.POSITIVE_INFINITY;
 
         int bestIndividualIndex = -1;
+        Log.printLine("How? " + populationSize);
         for(int i = 0; i < populationSize; i++) {
             double quality = getQuality(population[i]);
             if(quality < bestQuality) {

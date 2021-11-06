@@ -221,7 +221,7 @@ public class HyperHeuristicSimulation{
 
 	        //4. Create Host with its id and list of PEs and add them to the list of machines
 	        int hostId=0;
-	        int ram = 2048; //host memory (MB)
+	        int ram = 2*2048; //host memory (MB)
 	        long storage = 1000000; //host storage
 	        int bw = 10000;
 

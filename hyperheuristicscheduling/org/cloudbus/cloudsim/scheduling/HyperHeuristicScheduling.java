@@ -37,6 +37,8 @@ import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 import org.cloudbus.cloudsim.scheduling.MetaHeuristicAlgorithms;
 import org.cloudbus.cloudsim.scheduling.antcolony.AntColonyTaskScheduler;
 import org.cloudbus.cloudsim.scheduling.antcolony.AntColonyParameters;
+import org.cloudbus.cloudsim.scheduling.genetic.GeneticScheduling;
+import org.cloudbus.cloudsim.scheduling.genetic.GeneticParameters;
 
 public class HyperHeuristicScheduling{
 
@@ -60,7 +62,7 @@ public class HyperHeuristicScheduling{
 
     public static double Tmax;
 
-    HyperHeuristicScheduling(Cloudlet[] cloudletList, Vm[] vmList, int size, int maxIterations, int maxIterNotImproved, double Tmax){
+    public HyperHeuristicScheduling(Cloudlet[] cloudletList, Vm[] vmList, int size, int maxIterations, int maxIterNotImproved, double Tmax){
         Log.printLine(vmList.length);
         HyperHeuristicScheduling.cloudletSize       = cloudletList.length;
         HyperHeuristicScheduling.vmSize             = vmList.length;
@@ -70,6 +72,7 @@ public class HyperHeuristicScheduling{
         HyperHeuristicScheduling.maxIterations      = maxIterations;
         HyperHeuristicScheduling.maxIterNotImproved = maxIterNotImproved;
         HyperHeuristicScheduling.Tmax               = Tmax;
+        Log.printLine(maxIterations);
     }
 
 	public static int[] runHyperHeuristic(){
@@ -96,8 +99,8 @@ public class HyperHeuristicScheduling{
         int LLHQualityValue = -1;
 
         // There 
-        for(int i = 0; i < maxIterations; i++){
-            Log.printLine("Runnig metahueristic iteration number:"+i+"....Quality uptill now "+bestQ);
+        for(int i = 0; i <10*maxIterations ; i++){
+            Log.printLine("Runnig metahueristic iteration number:"+ i +"\n  Quality uptill now "+bestQ);
             LLH.runNextGeneration();
             updatedPopulation = LLH.population.clone();
             iterationByLLH++;
@@ -137,8 +140,15 @@ public class HyperHeuristicScheduling{
                 pheromoneWeight = 1;
                 heuristicWeight = 1;
                 pheromoneUpdationRate = 100;
-                maxIterations = 150;
                 antsPerGeneration = 8;
+            }
+        };
+
+        GeneticParameters GNparameters = new GeneticParameters(){
+            {
+                mutationRate = 0.95;
+                crossOverRate = 0.000001;
+                rouletteThreshold = 400;
             }
         };
 
@@ -148,7 +158,7 @@ public class HyperHeuristicScheduling{
         if(hueristicNumber == 0){
             return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
         }else if(hueristicNumber == 1){
-            return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
+            return new GeneticScheduling(cloudletList, vmList, population, bestIndividual, GNparameters);
         }
         return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
     }
@@ -162,18 +172,25 @@ public class HyperHeuristicScheduling{
                 pheromoneWeight = 1;
                 heuristicWeight = 1;
                 pheromoneUpdationRate = 100;
-                maxIterations = 150;
                 antsPerGeneration = populationSize;
             }
         };
 
+        GeneticParameters GNparameters = new GeneticParameters(){
+            {
+                mutationRate = 0.95;
+                crossOverRate = 0.000001;
+                rouletteThreshold = 400;
+                populationSize = populationSize;
+            }
+        };
         // Log.printLine("In hyperhueristicscheduling");
         // Log.printLine(vmList.length);
         // Log.printLine(vmSize);
         if(hueristicNumber == 0){
             return new AntColonyTaskScheduler(cloudletList, vmList, ACOparameters);
         }else if(hueristicNumber == 1){
-            return new AntColonyTaskScheduler(cloudletList, vmList, ACOparameters);
+            return new GeneticScheduling(cloudletList, vmList, GNparameters);
         }
         return new AntColonyTaskScheduler(cloudletList, vmList, ACOparameters);
     }
@@ -225,8 +242,17 @@ public class HyperHeuristicScheduling{
     }
 
     public static boolean diversityDetection(int[][] population){
-        Log.printLine(getDiversity(population));
-        if(getDiversity(population) > intitalDiversity) return true;
+        double diversity = getDiversity(population);
+        Log.printLine(diversity);
+        if(diversity < 5.0){
+            for(int i = 0; i < populationSize; i++){
+                for(int j = 0; j < cloudletSize; j++){
+                    Log.print(population[i][j] + " ");
+                }
+                Log.printLine("");
+            }
+        }
+        if(diversity > intitalDiversity) return true;
         else return false;
     }
 

@@ -32,11 +32,15 @@ import org.cloudbus.cloudsim.scheduling.MetaHeuristicAlgorithms;
 public class GeneticScheduling extends MetaHeuristicAlgorithms{
     public GeneticParameters params;
     
-    GeneticScheduling(Cloudlet[] cloudletList,Vm[] vmList,int[][] population,int[] bestIndividual,GeneticParameters params){
+    public GeneticScheduling(Cloudlet[] cloudletList,Vm[] vmList,int[][] population,int[] bestIndividual, GeneticParameters params){
         super(cloudletList, vmList, population, bestIndividual);
         this.params = params;
     }
 
+    public GeneticScheduling(Cloudlet[] cloudletList,Vm[] vmList, GeneticParameters params){
+        super(cloudletList, vmList, params.populationSize);
+        this.params = params;
+    }
 
     public int selectIndividual(){
         ArrayList<Double> fitness = new ArrayList<Double>();
@@ -57,7 +61,7 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
                 return i;
             }
         }
-        return cloudletSize.length - 1;
+        return cloudletCount - 1;
     }
 
     // Two point crossover
@@ -73,14 +77,14 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
         int[] individual1 = population[i1].clone();
         int[] individual2 = population[i2].clone();
 
-        int p1 = (int)cloudletLength * Math.random();
-        int p2 = (int)cloudletLength * Math.random();
+        int p1 = (int)(cloudletCount * Math.random());
+        int p2 = (int)(cloudletCount * Math.random());
         if(p2 > p1){
             p1 = p2;
         }
         int [] newOne = new int[individual1.length];
         int [] newTwo = new int[individual2.length];
-        for(int i = 0; i < cloudletLength; i++){
+        for(int i = 0; i < cloudletCount; i++){
             if(i <= p1 || i > p2){
                 newOne[i] = individual1[i];
                 newTwo[i] = individual2[i];
@@ -95,13 +99,13 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
 
     public void mutation(){
         int i1 = selectIndividual();
-        boolean shouldMutate = Math.random() <= param.mutationRate;
+        boolean shouldMutate = Math.random() <= params.mutationRate;
         if(shouldMutate){
-            population[i][(int) cloudletCount * Math.random()] = (int) vmCount * Math.random();
+            population[i1][(int) (cloudletCount * Math.random())] = (int) (vmCount * Math.random());
         }
     }
 
-    public void getQualitySum(){
+    public double getQualitySum(){
         double qualitySum = 0;
         for(int i = 0; i < population.length; i++){
             qualitySum += getQuality(population[i]);
@@ -111,7 +115,7 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
 
     @Override
     public void runNextGeneration(){
-        while(getQuality < params.rouletteThreshold){
+        while(getQualitySum() < params.rouletteThreshold){
             crossOver();
         }
         mutation();
