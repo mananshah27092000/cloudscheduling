@@ -66,6 +66,8 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
         // this.bestMakespan = Double.POSITIVE_INFINITY;
         this.currentGeneration = 0;
         // System.out.println(tabu.get(3));
+
+        initPheromoneTable();
     }
 
     public AntColonyTaskScheduler(Cloudlet[] cloudletList, 
@@ -80,6 +82,8 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
         
         // this.bestMakespan = Double.POSITIVE_INFINITY;
         this.currentGeneration = 0;
+
+        initPheromoneTable();
 
     }
 
@@ -150,12 +154,30 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
             if(vmUsed[i]) continue;
             lastUnusedVm = i;
             cumulativeProb += pheromoneHeuristicTable[cloudletIndex][i] / phTotal;
+            // cumulativeProb += pheromoneHeuristicTable[cloudletIndex][i] / pheromoneHeuristicTotal[cloudletIndex];
+
             if(uniformRand <= cumulativeProb) {
                 return i;
             }
         }
 
         return lastUnusedVm;
+    }
+
+    // discrete inverse transform sampling
+    private int sampleFromVmList(int cloudletIndex) {
+        double uniformRand = Math.random();
+        double cumulativeProb = 0.0;
+
+        for(int i = 0; i < vmCount; i++) {
+            cumulativeProb += pheromoneHeuristicTable[cloudletIndex][i] / pheromoneHeuristicTotal[cloudletIndex];
+
+            if(uniformRand <= cumulativeProb) {
+                return i;
+            }
+        }
+
+        return vmCount - 1;
     }
 
     private void updatePheromoneHeuristicTotals() {
@@ -171,18 +193,33 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
 
     @Override
     public void runNextGeneration() {
+        for(int i = 0; i < cloudletCount; i++) {
+            for(int j = 0; j < vmCount; j++) {
+                System.out.print(pheromoneHeuristicTable[i][j]/pheromoneHeuristicTotal[i] + " ");
+            }
+            System.out.println();
+        }
         for(int i = 0; i < params.antsPerGeneration; i++) {
             boolean[] vmUsed = new boolean[vmCount];
             int vmUsedCount = 0;
             for(int j = 0; j < cloudletCount; j++) {
-                population[i][j] = sampleFromVmList(j, vmUsed);
-                vmUsed[population[i][j]] = true;
-                vmUsedCount++;
-                if(vmUsedCount == vmCount) {
-                    vmUsedCount = 0;
-                    Arrays.fill(vmUsed, 0, vmCount, false);
+                if(params.tabuStrategy)
+                    population[i][j] = sampleFromVmList(j, vmUsed);
+                else 
+                    population[i][j] = sampleFromVmList(j);
+
+                System.out.print(population[i][j] + " ");
+                
+                if(params.tabuStrategy) {
+                    vmUsed[population[i][j]] = true;
+                    vmUsedCount++;
+                    if(vmUsedCount == vmCount) {
+                        vmUsedCount = 0;
+                        Arrays.fill(vmUsed, 0, vmCount, false);
+                    }
                 }
             }
+            System.out.println("");
             double quality = getQuality(population[i]);
             if(quality < bestQuality) {
                 bestQuality = quality;

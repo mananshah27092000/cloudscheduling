@@ -98,7 +98,7 @@ public class HyperHeuristicSimulation{
 	            		broker.bindCloudletToVm(cloudletArray[i].getCloudletId(), vmArray[scheduledVmId].getId());
 					}
 	            	// broker.bindCloudletToVm(cloudlet2.getCloudletId(), vm1.getId());
-					Log.setDisabled(false);
+					Log.setDisabled(true);
 	            	// Sixth step: Starts the simulation
 	            	Log.printLine(CloudSim.startSimulation());
 					Log.printLine("...........");

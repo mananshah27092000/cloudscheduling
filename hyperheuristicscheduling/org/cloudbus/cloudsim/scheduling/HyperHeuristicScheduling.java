@@ -141,6 +141,8 @@ public class HyperHeuristicScheduling{
                 heuristicWeight = 1;
                 pheromoneUpdationRate = 100;
                 antsPerGeneration = 8;
+                initPheromone = 1;
+                tabuStrategy = true;
             }
         };
 
@@ -173,6 +175,8 @@ public class HyperHeuristicScheduling{
                 heuristicWeight = 1;
                 pheromoneUpdationRate = 100;
                 antsPerGeneration = populationSize;
+                initPheromone = 1;
+                tabuStrategy = true;
             }
         };
 
