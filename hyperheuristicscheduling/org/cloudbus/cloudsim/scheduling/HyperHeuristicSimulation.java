@@ -78,7 +78,7 @@ public class HyperHeuristicSimulation{
 	            	broker.submitVmList(vmList);
 
 					// Create cloudlets as per the dataset
-					cloudletList = createCloudlets(brokerId, "1_1.txt");
+					cloudletList = createCloudlets(brokerId, "1_5.sm");
 
 	            	//submit cloudlet list to the broker
 	            	broker.submitCloudletList(cloudletList);
@@ -98,7 +98,7 @@ public class HyperHeuristicSimulation{
 	            		broker.bindCloudletToVm(cloudletArray[i].getCloudletId(), vmArray[scheduledVmId].getId());
 					}
 	            	// broker.bindCloudletToVm(cloudlet2.getCloudletId(), vm1.getId());
-					Log.setDisabled(true);
+					// Log.setDisabled(true);
 	            	// Sixth step: Starts the simulation
 	            	Log.printLine(CloudSim.startSimulation());
 					Log.printLine("...........");
@@ -110,8 +110,8 @@ public class HyperHeuristicSimulation{
 	            	CloudSim.stopSimulation();
 
 	            	printCloudletList(newList);
+					Log.setDisabled(false);
 					Log.printLine(getMakeSpan(newList));
-	            	Log.printLine("CloudSimExample2 finished!");
 	        }
 	        catch (Exception e) {
 	            e.printStackTrace();
@@ -134,8 +134,8 @@ public class HyperHeuristicSimulation{
 
 			//Cloudlet properties
 			int pesNumber 					  = 1;
-			int mips      					  = 250;
-			long bw 	  					  = 500;
+			int mips      					  = 95;
+			long bw 	  					  = 300;
 			long outputSize 				  = 300;
 			UtilizationModel utilizationModel = new UtilizationModelFull();
 			long length,fileSize;
@@ -148,7 +148,7 @@ public class HyperHeuristicSimulation{
 				// Creating cloudlet for this task
 				int duration = line.nextInt();
 				length 		 = duration * mips;
-				fileSize 	 = duration * bw;
+				fileSize 	 = duration * bw / 10;
 
 				// Create cloudlet
 				Cloudlet tempcloudlet = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);

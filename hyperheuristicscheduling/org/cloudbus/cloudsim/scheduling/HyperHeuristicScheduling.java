@@ -99,7 +99,7 @@ public class HyperHeuristicScheduling{
         int LLHQualityValue = -1;
 
         // There 
-        for(int i = 0; i <10*maxIterations ; i++){
+        for(int i = 0; i <   100*maxIterations ; i++){
             Log.printLine("Runnig metahueristic iteration number:"+ i +"\n  Quality uptill now "+bestQ);
             LLH.runNextGeneration();
             updatedPopulation = LLH.population.clone();
@@ -137,12 +137,12 @@ public class HyperHeuristicScheduling{
         AntColonyParameters ACOparameters = new AntColonyParameters() {
             {
                 evaporationRate = 0.5;
-                pheromoneWeight = 1;
+                pheromoneWeight = 2;
                 heuristicWeight = 1;
                 pheromoneUpdationRate = 100;
                 antsPerGeneration = 8;
                 initPheromone = 1;
-                tabuStrategy = true;
+                tabuStrategy = false;
             }
         };
 
@@ -150,7 +150,7 @@ public class HyperHeuristicScheduling{
             {
                 mutationRate = 0.95;
                 crossOverRate = 0.000001;
-                rouletteThreshold = 400;
+                rouletteThreshold = 150;
             }
         };
 
@@ -171,12 +171,12 @@ public class HyperHeuristicScheduling{
         AntColonyParameters ACOparameters = new AntColonyParameters() {
             {
                 evaporationRate = 0.5;
-                pheromoneWeight = 1;
+                pheromoneWeight = 2;
                 heuristicWeight = 1;
                 pheromoneUpdationRate = 100;
                 antsPerGeneration = populationSize;
                 initPheromone = 1;
-                tabuStrategy = true;
+                tabuStrategy = false;
             }
         };
 
@@ -184,10 +184,13 @@ public class HyperHeuristicScheduling{
             {
                 mutationRate = 0.95;
                 crossOverRate = 0.000001;
-                rouletteThreshold = 400;
-                populationSize = populationSize;
+                rouletteThreshold = 150;
+                populationSize = HyperHeuristicScheduling.populationSize;
             }
         };
+        // hueristicNumber = 0;
+        // Log.printLine("Size :" + populationSize);
+        // Log.printLine(GNparameters.populationSize);
         // Log.printLine("In hyperhueristicscheduling");
         // Log.printLine(vmList.length);
         // Log.printLine(vmSize);
@@ -239,23 +242,23 @@ public class HyperHeuristicScheduling{
         
     }
     public static boolean changeHeuristic(int[][] population, int notImprovedIterations){
-        Log.printLine(improvementDetection(notImprovedIterations));
-        Log.printLine(diversityDetection(population));
+        // Log.printLine(improvementDetection(notImprovedIterations));
+        // Log.printLine(diversityDetection(population));
         if(improvementDetection(notImprovedIterations) && diversityDetection(population))return false;
         else return true;
     }
 
     public static boolean diversityDetection(int[][] population){
         double diversity = getDiversity(population);
-        Log.printLine(diversity);
-        if(diversity < 5.0){
-            for(int i = 0; i < populationSize; i++){
-                for(int j = 0; j < cloudletSize; j++){
-                    Log.print(population[i][j] + " ");
-                }
-                Log.printLine("");
-            }
-        }
+        // Log.printLine(diversity);
+        // if(diversity < 5.0){
+        //     for(int i = 0; i < populationSize; i++){
+        //         for(int j = 0; j < cloudletSize; j++){
+        //             Log.print(population[i][j] + " ");
+        //         }
+        //         Log.printLine("");
+        //     }
+        // }
         if(diversity > intitalDiversity) return true;
         else return false;
     }

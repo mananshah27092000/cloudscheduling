@@ -193,12 +193,12 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
 
     @Override
     public void runNextGeneration() {
-        for(int i = 0; i < cloudletCount; i++) {
-            for(int j = 0; j < vmCount; j++) {
-                System.out.print(pheromoneHeuristicTable[i][j]/pheromoneHeuristicTotal[i] + " ");
-            }
-            System.out.println();
-        }
+        // for(int i = 0; i < cloudletCount; i++) {
+        //     for(int j = 0; j < vmCount; j++) {
+        //         System.out.print(pheromoneHeuristicTable[i][j]/pheromoneHeuristicTotal[i] + " ");
+        //     }
+        //     System.out.println();
+        // }
         for(int i = 0; i < params.antsPerGeneration; i++) {
             boolean[] vmUsed = new boolean[vmCount];
             int vmUsedCount = 0;
@@ -208,7 +208,7 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
                 else 
                     population[i][j] = sampleFromVmList(j);
 
-                System.out.print(population[i][j] + " ");
+                // System.out.print(population[i][j] + " ");
                 
                 if(params.tabuStrategy) {
                     vmUsed[population[i][j]] = true;
@@ -219,7 +219,7 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
                     }
                 }
             }
-            System.out.println("");
+            // System.out.println("");
             double quality = getQuality(population[i]);
             if(quality < bestQuality) {
                 bestQuality = quality;

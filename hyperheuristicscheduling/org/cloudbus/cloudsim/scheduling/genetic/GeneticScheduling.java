@@ -69,10 +69,10 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
     
         int i1 = selectIndividual();
         int i2 = selectIndividual();
-        while(i1 != i2){
-            Log.printLine("Same selection of individual for crossover, changing it");
-            i2 = selectIndividual();
-        }
+        // while(i1 != i2){
+        //     Log.printLine("Same selection of individual for crossover, changing it");
+        //     i2 = selectIndividual();
+        // }
 
         int[] individual1 = population[i1].clone();
         int[] individual2 = population[i2].clone();
@@ -115,8 +115,10 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
 
     @Override
     public void runNextGeneration(){
-        while(getQualitySum() < params.rouletteThreshold){
+        int runs = 0;
+        while(getQualitySum() < params.rouletteThreshold && runs<100){
             crossOver();
+            runs++;
         }
         mutation();
     }
