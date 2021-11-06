@@ -52,26 +52,40 @@ public abstract class MetaHeuristicAlgorithms{
     public static boolean initialized = false;
 
     public MetaHeuristicAlgorithms(Cloudlet[] cloudletList, Vm[] vmList, int[][] population, int[] bestIndividual){
-        this.population = population;
-        this.bestIndividual = bestIndividual;
-        if(bestIndividual != null) bestQuality = getQuality(bestIndividual);
-        if(population != null) this.populationSize = population.length;
+        // Log.printLine("In constructor MetaHeuristicAlgorithms fuck java1");
 
         if(!initialized){
-            MetaHeuristicAlgorithms.vmList = vmList;
-            MetaHeuristicAlgorithms.cloudletList = cloudletList;
+            // Log.printLine("In constructor MetaHeuristicAlgorithms1");
+            // Log.printLine(vmList.length);
             vmCount = vmList.length;
             cloudletCount = cloudletList.length;
-            
+            MetaHeuristicAlgorithms.vmList = vmList.clone();
+            MetaHeuristicAlgorithms.cloudletList = cloudletList.clone();
+            // Log.print(cloudletCount);
+            // Log.printLine(cloudletList[0]);
+            // Log.print(vmCount);
+                
             cloudletExecTime = new double [cloudletCount][vmCount];
-
             for(int i=0; i < cloudletCount; i++){
                 for(int j=0; j < vmCount; j++){
-                    cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[i].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
+                    // Log.printLine(j);
+                    // Log.print(cloudletList[i].getCloudletLength());
+                    // Log.print(vmList[j].getNumberOfPes());
+                    // Log.print( vmList[i].getMips());
+                    // Log.print(cloudletList[i].getCloudletFileSize());
+                    // Log.print(vmList[j].getBw());
+                    cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[j].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
                 }
             }
             initialized = true;
         }
+        // Log.printLine("In constructor MetaHeuristicAlgorithms2");
+        this.population = population;
+        this.bestIndividual = bestIndividual;
+        // Log.printLine(vmList);
+        if(bestIndividual != null) bestQuality = getQuality(bestIndividual);
+        if(population != null) this.populationSize = population.length;
+        
     }
     
     // constructor for the case when best indiviudal should be calculated automatically from population

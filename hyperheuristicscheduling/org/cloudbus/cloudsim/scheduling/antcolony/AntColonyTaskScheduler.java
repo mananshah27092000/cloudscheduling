@@ -54,7 +54,9 @@ public class AntColonyTaskScheduler extends MetaHeuristicAlgorithms {
                                   int[] bestIndividual,
                                   AntColonyParameters params) {
         super(cloudletList, vmList, population, bestIndividual);
-        Log.printLine(bestIndividual);
+        // Log.printLine("In constructor AntyColonyAlgorithms");
+        // Log.printLine(bestIndividual);
+
         this.params = params;
         this.pheromoneTable = new double[cloudletCount][vmCount];
         this.pheromoneHeuristicTable = new double[cloudletCount][vmCount];

@@ -61,17 +61,18 @@ public class HyperHeuristicScheduling{
     public static double Tmax;
 
     HyperHeuristicScheduling(Cloudlet[] cloudletList, Vm[] vmList, int size, int maxIterations, int maxIterNotImproved, double Tmax){
-        cloudletSize       = cloudletList.length;
-        vmSize             = vmList.length;
-        cloudletList       = cloudletList.clone();
-        vmList             = vmList.clone();
-        populationSize     = size;
-        maxIterations      = maxIterations;
-        maxIterNotImproved = maxIterNotImproved;
-        Tmax               = Tmax;
+        Log.printLine(vmList.length);
+        HyperHeuristicScheduling.cloudletSize       = cloudletList.length;
+        HyperHeuristicScheduling.vmSize             = vmList.length;
+        HyperHeuristicScheduling.cloudletList       = cloudletList.clone();
+        HyperHeuristicScheduling.vmList             = vmList.clone();
+        HyperHeuristicScheduling.populationSize     = size;
+        HyperHeuristicScheduling.maxIterations      = maxIterations;
+        HyperHeuristicScheduling.maxIterNotImproved = maxIterNotImproved;
+        HyperHeuristicScheduling.Tmax               = Tmax;
     }
 
-	public static void runHyperHeuristic(){
+	public static int[] runHyperHeuristic(){
 
         Log.printLine("HyperHeuristic Algorithm starting to run.....");
         int[][] initialPopulation = new int[populationSize][cloudletSize];
@@ -83,7 +84,8 @@ public class HyperHeuristicScheduling{
             }
         }
         
-        intitalDiversity = getDiversity(initialPopulation) - 3 * getStandardDeviation(initialPopulation);
+        intitalDiversity = getDiversity(initialPopulation) - 5 * getStandardDeviation(initialPopulation);
+        Log.printLine(getDiversity(initialPopulation)+ " " + getStandardDeviation(initialPopulation));
         Log.printLine(intitalDiversity);
 
         int[] bestIndividual = initialPopulation[0].clone();
@@ -95,14 +97,14 @@ public class HyperHeuristicScheduling{
 
         // There 
         for(int i = 0; i < maxIterations; i++){
-            Log.printLine("Runnig metahueristic iteration number:"+i+"....");
+            Log.printLine("Runnig metahueristic iteration number:"+i+"....Quality uptill now "+bestQ);
             LLH.runNextGeneration();
             updatedPopulation = LLH.population.clone();
             iterationByLLH++;
-            int[] currentBest = LLH.bestIndividual.clone();
-            double currentBestQ = LLH.bestQuality;
-            Log.printLine(currentBest);
-            Log.printLine(currentBestQ);
+            int[] currentBest = updatedPopulation[LLH.getBestIndividual()].clone();
+            double currentBestQ = LLH.getQuality(currentBest);
+            // Log.printLine(currentBest);
+            // Log.printLine(currentBestQ);
 
             if(bestQ - currentBestQ < 1e-4){
                 notImprovedIterations++;
@@ -119,7 +121,10 @@ public class HyperHeuristicScheduling{
                 iterationByLLH = 0;
                 notImprovedIterations = 0;
             }
+            // Log.printLine(bestQ);
+            // Log.printLine(bestIndividual);
         }
+        return bestIndividual;
 
     }
 
@@ -137,9 +142,12 @@ public class HyperHeuristicScheduling{
             }
         };
 
-        if(hueristicNumber == 1){
+        // Log.printLine("In hyperhueristicscheduling");
+        // Log.printLine(vmList.length);
+        // Log.printLine(vmSize);
+        if(hueristicNumber == 0){
             return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
-        }else if(hueristicNumber == 2){
+        }else if(hueristicNumber == 1){
             return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
         }
         return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
@@ -185,11 +193,14 @@ public class HyperHeuristicScheduling{
         
     }
     public static boolean changeHeuristic(int[][] population, int notImprovedIterations){
+        Log.printLine(improvementDetection(notImprovedIterations));
+        Log.printLine(diversityDetection(population));
         if(improvementDetection(notImprovedIterations) && diversityDetection(population))return false;
         else return true;
     }
 
     public static boolean diversityDetection(int[][] population){
+        Log.printLine(getDiversity(population));
         if(getDiversity(population) > intitalDiversity) return true;
         else return false;
     }
