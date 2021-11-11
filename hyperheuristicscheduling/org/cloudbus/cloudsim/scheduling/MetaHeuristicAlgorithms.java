@@ -32,6 +32,8 @@ import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
+
+// Abstract class for the underlying LLH
 public abstract class MetaHeuristicAlgorithms{
 
 	/** The cloudlet list. */
@@ -41,48 +43,41 @@ public abstract class MetaHeuristicAlgorithms{
 	public static Vm[] vmList;
 
     public int[][] population;
+
     public int[] bestIndividual;
+    
     public double bestQuality;
 
     public static int vmCount;
+    
     public static int cloudletCount;
+    
     public int populationSize;
 
     public static double[][] cloudletExecTime;
+    
     public static boolean initialized = false;
 
+    // constructor when population and bestIndividual are passed
     public MetaHeuristicAlgorithms(Cloudlet[] cloudletList, Vm[] vmList, int[][] population, int[] bestIndividual){
-        // Log.printLine("In constructor MetaHeuristicAlgorithms fuck java1");
 
         if(!initialized){
-            // Log.printLine("In constructor MetaHeuristicAlgorithms1");
-            // Log.printLine(vmList.length);
             vmCount = vmList.length;
             cloudletCount = cloudletList.length;
             MetaHeuristicAlgorithms.vmList = vmList.clone();
             MetaHeuristicAlgorithms.cloudletList = cloudletList.clone();
-            // Log.print(cloudletCount);
-            // Log.printLine(cloudletList[0]);
-            // Log.print(vmCount);
-                
+            
             cloudletExecTime = new double [cloudletCount][vmCount];
             for(int i=0; i < cloudletCount; i++){
                 for(int j=0; j < vmCount; j++){
-                    // Log.printLine(j);
-                    // Log.print(cloudletList[i].getCloudletLength());
-                    // Log.print(vmList[j].getNumberOfPes());
-                    // Log.print( vmList[j].getMips());
-                    // Log.print(cloudletList[i].getCloudletFileSize());
-                    // Log.print(vmList[j].getBw());
                     cloudletExecTime[i][j] = (double)cloudletList[i].getCloudletLength()/(double)(vmList[j].getNumberOfPes() + vmList[j].getMips()) + (double)cloudletList[i].getCloudletFileSize()/(double)vmList[j].getBw();
                 }
             }
             initialized = true;
         }
-        // Log.printLine("In constructor MetaHeuristicAlgorithms2");
+
         this.population = population;
         this.bestIndividual = bestIndividual;
-        // Log.printLine(vmList);
         if(bestIndividual != null) bestQuality = getQuality(bestIndividual);
         if(population != null) this.populationSize = population.length;
         
@@ -160,7 +155,6 @@ public abstract class MetaHeuristicAlgorithms{
         bestQuality = Double.POSITIVE_INFINITY;
 
         int bestIndividualIndex = -1;
-        // Log.printLine("How? " + populationSize);
         for(int i = 0; i < populationSize; i++) {
             double quality = getQuality(population[i]);
             if(quality < bestQuality) {
@@ -173,8 +167,10 @@ public abstract class MetaHeuristicAlgorithms{
 
     }
 
+    // Generating the next generation for GA and ACO which is implemented in the child classes
     public abstract void runNextGeneration();
 
+    // Gives the quality of individual
     public double getQuality(int[] individual){
         int l = individual.length;
         double[] sum = new double[vmList.length];
@@ -189,6 +185,7 @@ public abstract class MetaHeuristicAlgorithms{
         return maxVM;
     }   
     
+    // gives the best individual for the current population
     public int getBestIndividual() {
         if(population == null) return -1;
 

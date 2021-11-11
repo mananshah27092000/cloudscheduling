@@ -12,6 +12,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.io.File;
 import java.util.Scanner;
+import java.io.FileWriter;
+import java.io.IOException;
+
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
@@ -42,6 +45,8 @@ import org.cloudbus.cloudsim.scheduling.genetic.GeneticParameters;
 
 public class HyperHeuristicScheduling{
 
+    // Which cloudlet dataset is being used from j30, j60, j90 and j120
+	private static String filepath = "j30.sm\\j30";
 	/** The cloudlet list. */
 	public static Cloudlet[] cloudletList;
 
@@ -62,6 +67,10 @@ public class HyperHeuristicScheduling{
 
     public static double Tmax;
 
+    public static boolean rr = true;
+
+    public static int current = 0;
+
     public HyperHeuristicScheduling(Cloudlet[] cloudletList, Vm[] vmList, int size, int maxIterations, int maxIterNotImproved, double Tmax){
         Log.printLine(vmList.length);
         HyperHeuristicScheduling.cloudletSize       = cloudletList.length;
@@ -77,6 +86,8 @@ public class HyperHeuristicScheduling{
 
 	public static int[] runHyperHeuristic(){
 
+        ArrayList<Double> quality = new ArrayList<Double> ();
+
         Log.printLine("HyperHeuristic Algorithm starting to run.....");
         int[][] initialPopulation = new int[populationSize][cloudletSize];
         
@@ -87,7 +98,7 @@ public class HyperHeuristicScheduling{
             }
         }
         
-        intitalDiversity = getDiversity(initialPopulation) - 5 * getStandardDeviation(initialPopulation);
+        intitalDiversity = getDiversity(initialPopulation) - 3 * getStandardDeviation(initialPopulation);
         Log.printLine(getDiversity(initialPopulation)+ " " + getStandardDeviation(initialPopulation));
         Log.printLine(intitalDiversity);
 
@@ -98,16 +109,16 @@ public class HyperHeuristicScheduling{
         int notImprovedIterations = 0, iterationByLLH = 0;
         int LLHQualityValue = -1;
 
-        // There 
-        for(int i = 0; i <   100*maxIterations ; i++){
+        // Iterations of Hueristic / Hyper hueristic algorithms
+        for(int i = 0; i < maxIterations ; i++){
             Log.printLine("Runnig metahueristic iteration number:"+ i +"\n  Quality uptill now "+bestQ);
             LLH.runNextGeneration();
             updatedPopulation = LLH.population.clone();
             iterationByLLH++;
             int[] currentBest = updatedPopulation[LLH.getBestIndividual()].clone();
             double currentBestQ = LLH.getQuality(currentBest);
-            // Log.printLine(currentBest);
-            // Log.printLine(currentBestQ);
+            quality.add(bestQ);
+
 
             if(bestQ - currentBestQ < 1e-4){
                 notImprovedIterations++;
@@ -117,6 +128,8 @@ public class HyperHeuristicScheduling{
                 bestIndividual = currentBest;
             }
 
+            // Comment the if condition to not change the heuristic function. (So if GA is selected at first the we will get results for GA as heuristic don't change)
+            // This the main part of Hyper Heuristic paper
             if(changeHeuristic(updatedPopulation, notImprovedIterations)){
                 Log.printLine("Changing heuristic");
                 updatedPopulation = perturbation(updatedPopulation, LLH, iterationByLLH);
@@ -124,15 +137,44 @@ public class HyperHeuristicScheduling{
                 iterationByLLH = 0;
                 notImprovedIterations = 0;
             }
-            // Log.printLine(bestQ);
-            // Log.printLine(bestIndividual);
+
         }
+
+        // Uncomment to save the change in makespan in iterations
+        // saveQuality(quality);
         return bestIndividual;
 
     }
 
+
+    private static void saveQuality(ArrayList<Double> quality){
+        try{
+            FileWriter  file = new FileWriter (filepath.concat("resultsBSFMP_HHSA.txt"));
+            for(int i = 0; i < quality.size(); i++){
+                file.write( quality.get(i) + "\n");
+            }
+            file.close();
+        }catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    public static int RoundRobin(){
+        int temp = current;
+
+        if(current == 1)current = 0;
+        else current = 1;
+
+        return temp;
+    }
+
+    // Function is called to change heuristic
     public static  MetaHeuristicAlgorithms getHeuristic(int[][] population, int[] bestIndividual){
         int hueristicNumber = (int)(2*Math.random());
+
+        if(rr)hueristicNumber = RoundRobin();
+        
         Log.printLine(hueristicNumber);
         AntColonyParameters ACOparameters = new AntColonyParameters() {
             {
@@ -149,14 +191,11 @@ public class HyperHeuristicScheduling{
         GeneticParameters GNparameters = new GeneticParameters(){
             {
                 mutationRate = 0.95;
-                crossOverRate = 0.000001;
+                crossOverRate = 0.01;
                 rouletteThreshold = 150;
             }
         };
 
-        // Log.printLine("In hyperhueristicscheduling");
-        // Log.printLine(vmList.length);
-        // Log.printLine(vmSize);
         if(hueristicNumber == 0){
             return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
         }else if(hueristicNumber == 1){
@@ -165,8 +204,13 @@ public class HyperHeuristicScheduling{
         return new AntColonyTaskScheduler(cloudletList, vmList, population, bestIndividual, ACOparameters);
     }
 
+
+    // Function is called to choose heuristic for the first time
     public static  MetaHeuristicAlgorithms getHeuristicInit(){
         int hueristicNumber = (int)(2*Math.random());
+        
+        if(rr)hueristicNumber = RoundRobin();
+        
         Log.printLine(hueristicNumber);
         AntColonyParameters ACOparameters = new AntColonyParameters() {
             {
@@ -183,17 +227,12 @@ public class HyperHeuristicScheduling{
         GeneticParameters GNparameters = new GeneticParameters(){
             {
                 mutationRate = 0.95;
-                crossOverRate = 0.000001;
+                crossOverRate = 0.01;
                 rouletteThreshold = 150;
                 populationSize = HyperHeuristicScheduling.populationSize;
             }
         };
-        // hueristicNumber = 0;
-        // Log.printLine("Size :" + populationSize);
-        // Log.printLine(GNparameters.populationSize);
-        // Log.printLine("In hyperhueristicscheduling");
-        // Log.printLine(vmList.length);
-        // Log.printLine(vmSize);
+
         if(hueristicNumber == 0){
             return new AntColonyTaskScheduler(cloudletList, vmList, ACOparameters);
         }else if(hueristicNumber == 1){
@@ -202,6 +241,7 @@ public class HyperHeuristicScheduling{
         return new AntColonyTaskScheduler(cloudletList, vmList, ACOparameters);
     }
 
+    // Perturbation as per the paper with the use of simmulate annealing
     public static int[][] perturbation(int[][] population, MetaHeuristicAlgorithms LLH, int iterationByLLH){
         ArrayList<Double> fitness = new ArrayList<Double>();
         double maxFitness = -1;
@@ -213,12 +253,13 @@ public class HyperHeuristicScheduling{
             maxFitness = Math.max(maxFitness, tempFitness);
             minFitness = Math.max(minFitness, tempFitness);
         }
-
+        double maxLowLevelIterations = 50;
         ArrayList<Double> temperature = new ArrayList<Double>();
         for(int i = 0; i < populationSize; i++){
-            double temp = Tmax * (double)((maxIterations - iterationByLLH) * (maxFitness - fitness.get(i))) / maxIterations * (maxFitness - minFitness);
+            double temp = Tmax * (double)((maxLowLevelIterations - iterationByLLH) * (maxFitness - fitness.get(i))) / maxLowLevelIterations * (maxFitness - minFitness);
             temperature.add(temp);
         }
+
         for(int i = 0; i < populationSize; i++){
             int[] individual = population[i];
             int[] newIndividual = individual.clone();
@@ -241,28 +282,22 @@ public class HyperHeuristicScheduling{
         return population;
         
     }
+
+    // Change heuristic operator as mentioned in paper
     public static boolean changeHeuristic(int[][] population, int notImprovedIterations){
-        // Log.printLine(improvementDetection(notImprovedIterations));
-        // Log.printLine(diversityDetection(population));
         if(improvementDetection(notImprovedIterations) && diversityDetection(population))return false;
         else return true;
     }
 
+    // Diversity Detection operator as mentioned in paper
     public static boolean diversityDetection(int[][] population){
         double diversity = getDiversity(population);
-        // Log.printLine(diversity);
-        // if(diversity < 5.0){
-        //     for(int i = 0; i < populationSize; i++){
-        //         for(int j = 0; j < cloudletSize; j++){
-        //             Log.print(population[i][j] + " ");
-        //         }
-        //         Log.printLine("");
-        //     }
-        // }
+
         if(diversity > intitalDiversity) return true;
         else return false;
     }
 
+    // Computing diversity
     public static double getDiversity(int[][] population){
         int diversitySum = 0;
         for(int k = 0; k < cloudletSize; k++){
@@ -278,6 +313,7 @@ public class HyperHeuristicScheduling{
         return diversitySum/cloudletSize;
     }
 
+    // Computing standard deviation of diversity
     public static double getStandardDeviation(int[][] population){
         ArrayList<Integer> diversity = new ArrayList<Integer>();
 
@@ -302,12 +338,13 @@ public class HyperHeuristicScheduling{
         }
         return Math.sqrt(sd/diversity.size());
     }
+
+    // Improvement Detection operator as mentioned in paper
     public static boolean improvementDetection(int notImprovedIterations){
         if(notImprovedIterations > maxIterNotImproved){
             return false;
         }
         return true;
     }
-
     
 }

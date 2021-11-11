@@ -1,5 +1,11 @@
 package org.cloudbus.cloudsim.scheduling.antcolony;
 
+/*
+    Authors: Manan Shah and Manul Goyal
+    Roll No.: B18CSE030 and B18CSE031
+*/
+
+// Parameter of ACO
 public class AntColonyParameters {
     public double evaporationRate;
     public double pheromoneWeight;

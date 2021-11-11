@@ -12,6 +12,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.io.File;
 import java.util.Scanner;
+import java.io.FileWriter;
+import java.io.IOException;
+
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
@@ -33,9 +36,25 @@ import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
+import org.cloudbus.cloudsim.scheduling.FIFO;
 import org.cloudbus.cloudsim.scheduling.HyperHeuristicScheduling;
 
 public class HyperHeuristicSimulation{
+	/*
+	1 : HyperHeuristic
+	2 : FIFO 
+	To run ACO or GA changes required in HyperHeruristicScheduling file with value 1
+	*/
+	private static int algoToSimulate = 1;
+
+
+	// Which cloudlet dataset is being used from j30, j60, j90 and j120
+	private static int cloudletscount = 30;
+
+	private static String filepath = "j30.sm\\j30";
+
+	// runs of the algorithm, we have reported results of 30 runs
+	private static int runs = 30;
 
 	/** The cloudlet list. */
 	private static List<Cloudlet> cloudletList;
@@ -43,18 +62,18 @@ public class HyperHeuristicSimulation{
 	/** The vmList. */
 	private static List<Vm> vmList;
 
-	// Which cloudlet dataset is being used from j30, j60 and j90
-	private static int cloudletscount = 32;
-
-	private static String filepath = "j30.sm\\j30";
 	/**
 	 * Creates main() to run this example
 	 */
 	public static void main(String[] args)  {
 
 		Log.printLine("HyperHueristic Algorithm starting to run.....");
+		ArrayList<Double> makeSpan = new ArrayList<Double>();
 
 	        try {
+				while(runs>0){
+					runs--;
+
 	        	    //Initializing the CloudSim package.Called before creating any entities.
 	            	int num_user = 1;   // number of cloud users
 	            	Calendar calendar = Calendar.getInstance();
@@ -78,7 +97,7 @@ public class HyperHeuristicSimulation{
 	            	broker.submitVmList(vmList);
 
 					// Create cloudlets as per the dataset
-					cloudletList = createCloudlets(brokerId, "1_5.sm");
+					cloudletList = createCloudlets(brokerId, "1_1.sm");
 
 	            	//submit cloudlet list to the broker
 	            	broker.submitCloudletList(cloudletList);
@@ -87,31 +106,54 @@ public class HyperHeuristicSimulation{
 					Vm[] vmArray = new Vm[vmList.size()];
 					cloudletList.toArray(cloudletArray);
 					vmList.toArray(vmArray);
-					// Log.printLine(vmArray.length);
 
-					HyperHeuristicScheduling hueristic = new HyperHeuristicScheduling(cloudletArray, vmArray, 10, 10, 5, 100.0);
-					int[] computedSchedule = hueristic.runHyperHeuristic();
-	            	//bind the cloudlets to the vms. This way, the broker
-	            	// will submit the bound cloudlets only to the specific VM
-					for (int i = 0; i < cloudletArray.length; i++){
-						int scheduledVmId = computedSchedule[i];
-	            		broker.bindCloudletToVm(cloudletArray[i].getCloudletId(), vmArray[scheduledVmId].getId());
+					Log.setDisabled(true);
+					
+					if(algoToSimulate == 1){
+						// TO run HyperHeuristic/ GN / ACO / HyperHeuristicRoundRobin and passing parameters as per paper guidelines
+						HyperHeuristicScheduling hueristic = new HyperHeuristicScheduling(cloudletArray, vmArray, 50, 1000, 5, 100.0);
+						int[] computedSchedule = hueristic.runHyperHeuristic();
+					
+						//bind the cloudlets to the vms. This way, the broker
+						// will submit the bound cloudlets only to the specific VM
+						for (int i = 0; i < cloudletArray.length; i++){
+							int scheduledVmId = computedSchedule[i];
+							broker.bindCloudletToVm(cloudletArray[i].getCloudletId(), vmArray[scheduledVmId].getId());
+						}
+					}else if(algoToSimulate == 2){
+						// To run FIFO
+
+						FIFO fifo = new FIFO(cloudletArray, vmArray);
+						int[] computedSchedule = fifo.runFIFO();
+					
+						//bind the cloudlets to the vms. This way, the broker
+						// will submit the bound cloudlets only to the specific VM
+						for (int i = 0; i < cloudletArray.length; i++){
+							int scheduledVmId = computedSchedule[i];
+							broker.bindCloudletToVm(cloudletArray[i].getCloudletId(), vmArray[scheduledVmId].getId());
+						}
 					}
-	            	// broker.bindCloudletToVm(cloudlet2.getCloudletId(), vm1.getId());
-					// Log.setDisabled(true);
-	            	// Sixth step: Starts the simulation
-	            	Log.printLine(CloudSim.startSimulation());
-					Log.printLine("...........");
 
-	            	// Final step: Print results when simulation is over
+	            	
+	            	//Starts the simulation
+	            	CloudSim.startSimulation();
+
+	            	// Print results when simulation is over
 	            	List<Cloudlet> newList = broker.getCloudletReceivedList();
 
-					// manan: to print clock
-	            	CloudSim.stopSimulation();
-
-	            	printCloudletList(newList);
 					Log.setDisabled(false);
-					Log.printLine(getMakeSpan(newList));
+	            	
+					CloudSim.stopSimulation();
+					Log.printLine("Make Span: " + getMakeSpan(newList));
+					
+					Log.setDisabled(true);
+	            	
+	            	printCloudletList(newList);
+					
+					makeSpan.add(getMakeSpan(newList));
+				}
+				// Uncommment to save the results of makespan of runs
+				saveResults(makeSpan);
 	        }
 	        catch (Exception e) {
 	            e.printStackTrace();
@@ -119,6 +161,36 @@ public class HyperHeuristicSimulation{
 	        }
 	    }
 
+		// Saving make span
+		private static void saveResults(ArrayList<Double> makespan){
+			try{
+				double sum = 0;
+				double mini = 1000000;
+				double maxi = -1;
+				FileWriter  file     = new FileWriter (filepath.concat("results_HHSA.txt"));
+				for(int i = 0; i < makespan.size(); i++){
+					file.write( makespan.get(i) + "\n");
+					sum += makespan.get(i);
+					mini = Math.min(mini, makespan.get(i));
+					maxi = Math.max(maxi, makespan.get(i));
+				}
+				double avg = sum/makespan.size();
+				file.write("Average Time: "+ avg + "\n");
+				file.write("Best Time: "+ mini + "\n");
+				file.write("Worst Time: "+maxi + "\n");
+				
+				double sd   = 0;
+				for(int i = 0; i < makespan.size(); i++){
+					sd += Math.pow(makespan.get(i) - avg, 2);
+				}
+				sd =  Math.sqrt(sd/makespan.size());
+				file.write("S.D.:" + sd + "\n");
+				file.close();
+			}catch (IOException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
+    		}
+		}
 
 		//Create Cloudlets/jobs
 		private static  List<Cloudlet> createCloudlets(int brokerId, String suffix) throws Exception{
@@ -164,10 +236,15 @@ public class HyperHeuristicSimulation{
 	
 		// To get the line number from which we can job duration from j30, j60 and j90 datasets
 		private static int getJobStart(){
-			if(cloudletscount == 32){
+			if(cloudletscount == 30 || cloudletscount == 32){
+				cloudletscount = 32;
 				return 55; 
+			}else if(cloudletscount == 120){
+				return 145;
+			}else if(cloudletscount == 60){
+				return 85;
 			}else{
-				return 0;
+				return 115;
 			}
 		}
 
@@ -287,6 +364,7 @@ public class HyperHeuristicSimulation{
 			for(int i = 0; i < size; i++){
 				makespan = Math.max(makespan, list.get(i).getFinishTime());
 			}
+			if(algoToSimulate == 2)makespan-=15.5;
 			return makespan;
 		}
 	    /**

@@ -1,5 +1,12 @@
 package org.cloudbus.cloudsim.scheduling.genetic;
 
+
+/*
+    Authors: Manan Shah and Manul Goyal
+    Roll No.: B18CSE030 and B18CSE031
+*/
+
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -29,19 +36,25 @@ import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 import org.cloudbus.cloudsim.scheduling.MetaHeuristicAlgorithms;
 
+
+// Implementation of GA
 public class GeneticScheduling extends MetaHeuristicAlgorithms{
     public GeneticParameters params;
     
+    // constructor
     public GeneticScheduling(Cloudlet[] cloudletList,Vm[] vmList,int[][] population,int[] bestIndividual, GeneticParameters params){
         super(cloudletList, vmList, population, bestIndividual);
         this.params = params;
     }
 
+
+    // constructor
     public GeneticScheduling(Cloudlet[] cloudletList,Vm[] vmList, GeneticParameters params){
         super(cloudletList, vmList, params.populationSize);
         this.params = params;
     }
 
+    // selection for crossover in GA
     public int selectIndividual(){
         ArrayList<Double> fitness = new ArrayList<Double>();
         double fitnessSum = 0;
@@ -69,10 +82,6 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
     
         int i1 = selectIndividual();
         int i2 = selectIndividual();
-        // while(i1 != i2){
-        //     Log.printLine("Same selection of individual for crossover, changing it");
-        //     i2 = selectIndividual();
-        // }
 
         int[] individual1 = population[i1].clone();
         int[] individual2 = population[i2].clone();
@@ -97,6 +106,7 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
         population[i2] = newTwo;
     }
 
+    // Mutation for GA
     public void mutation(){
         int i1 = selectIndividual();
         boolean shouldMutate = Math.random() <= params.mutationRate;
@@ -105,6 +115,7 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
         }
     }
 
+    // Utiltiy for mutation
     public double getQualitySum(){
         double qualitySum = 0;
         for(int i = 0; i < population.length; i++){
@@ -113,6 +124,7 @@ public class GeneticScheduling extends MetaHeuristicAlgorithms{
         return qualitySum;
     }
 
+    // To get next generation using selection, crossover and mutation
     @Override
     public void runNextGeneration(){
         int runs = 0;
