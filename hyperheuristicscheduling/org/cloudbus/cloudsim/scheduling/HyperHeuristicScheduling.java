@@ -67,7 +67,7 @@ public class HyperHeuristicScheduling{
 
     public static double Tmax;
 
-    public static boolean rr = true;
+    public static boolean rr = false;
 
     public static int current = 0;
 
@@ -160,6 +160,7 @@ public class HyperHeuristicScheduling{
         }
     }
 
+    // Function to call for heuristic in round robin fashion
     public static int RoundRobin(){
         int temp = current;
 
@@ -210,7 +211,11 @@ public class HyperHeuristicScheduling{
         int hueristicNumber = (int)(2*Math.random());
         
         if(rr)hueristicNumber = RoundRobin();
-        
+
+        // To take ACO
+        // hueristicNumber = 0;
+        // To take GA
+        // hueristicNumber = 1;
         Log.printLine(hueristicNumber);
         AntColonyParameters ACOparameters = new AntColonyParameters() {
             {

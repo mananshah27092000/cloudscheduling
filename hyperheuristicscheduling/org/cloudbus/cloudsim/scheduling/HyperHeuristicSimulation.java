@@ -53,8 +53,10 @@ public class HyperHeuristicSimulation{
 
 	private static String filepath = "j30.sm\\j30";
 
+	private static String makespanfile =  filepath.concat("results_HHSA.txt");
+
 	// runs of the algorithm, we have reported results of 30 runs
-	private static int runs = 30;
+	private static int runs = 1;
 
 	/** The cloudlet list. */
 	private static List<Cloudlet> cloudletList;
@@ -136,7 +138,7 @@ public class HyperHeuristicSimulation{
 
 	            	
 	            	//Starts the simulation
-	            	CloudSim.startSimulation();
+					CloudSim.startSimulation();
 
 	            	// Print results when simulation is over
 	            	List<Cloudlet> newList = broker.getCloudletReceivedList();
@@ -146,9 +148,9 @@ public class HyperHeuristicSimulation{
 					CloudSim.stopSimulation();
 					Log.printLine("Make Span: " + getMakeSpan(newList));
 					
+	            	printCloudletList(newList);
 					Log.setDisabled(true);
 	            	
-	            	printCloudletList(newList);
 					
 					makeSpan.add(getMakeSpan(newList));
 				}
@@ -167,7 +169,7 @@ public class HyperHeuristicSimulation{
 				double sum = 0;
 				double mini = 1000000;
 				double maxi = -1;
-				FileWriter  file     = new FileWriter (filepath.concat("results_HHSA.txt"));
+				FileWriter  file     = new FileWriter (makespanfile);
 				for(int i = 0; i < makespan.size(); i++){
 					file.write( makespan.get(i) + "\n");
 					sum += makespan.get(i);
